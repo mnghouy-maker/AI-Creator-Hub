@@ -1,0 +1,32 @@
+/* Global styles + design tokens. The token values mirror the approved Phase-1
+   prototype so the production UI inherits the exact same look. Real components
+   (nav, dashboard, pricing) are built on these in Phase 5. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: 210 20% 97%;
+    --surface: 0 0% 100%;
+    --border: 220 16% 91%;
+    --text: 222 34% 10%;
+    --muted: 220 9% 40%;
+    --accent: 12 88% 56%; /* coral */
+    --accent-2: 174 82% 35%; /* teal */
+  }
+  .dark {
+    --bg: 220 30% 6%;
+    --surface: 222 27% 9%;
+    --border: 218 22% 18%;
+    --text: 220 30% 92%;
+    --muted: 218 14% 66%;
+    --accent: 12 100% 64%;
+    --accent-2: 172 65% 51%;
+  }
+  body {
+    background: hsl(var(--bg));
+    color: hsl(var(--text));
+    -webkit-font-smoothing: antialiased;
+  }
+}

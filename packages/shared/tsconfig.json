@@ -1,0 +1,10 @@
+{
+  "//": "Extends the repo base; emits declarations to dist so apps get types when this package is built in CI/Docker.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "lib": ["ES2022"]
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,23 @@
+{
+  "//": "Framework-agnostic domain layer shared by web, api, and worker. Holds the SINGLE source of truth for plans, credit costs, languages, voices, and shared types/Zod schemas — so pricing and entitlements are data, changeable without touching feature code (Architecture §9).",
+  "name": "@hub/shared",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}

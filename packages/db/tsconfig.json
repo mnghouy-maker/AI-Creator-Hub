@@ -1,0 +1,10 @@
+{
+  "//": "Compiles the thin client wrapper in src/. The generated Prisma client is emitted to node_modules and type-checked via skipLibCheck.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "lib": ["ES2022"]
+  },
+  "include": ["src"]
+}

@@ -1,0 +1,8 @@
+{
+  "//": "One formatting standard for the whole repo so diffs stay about logic, not whitespace.",
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "printWidth": 100,
+  "tabWidth": 2
+}

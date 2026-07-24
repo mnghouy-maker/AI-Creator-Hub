@@ -1,0 +1,18 @@
+{
+  "//": "NestJS needs decorator metadata; it also uses CommonJS output. We override module settings from the base here because Nest's runtime expects commonjs, unlike the ESM packages.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "target": "ES2022",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@hub/shared": ["../../packages/shared/src/index.ts"],
+      "@hub/db": ["../../packages/db/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

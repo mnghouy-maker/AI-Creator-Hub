@@ -1,0 +1,27 @@
+// =============================================================================
+// Prisma schema — PLACEHOLDER for Phase 2.
+//
+// This file intentionally contains only the generator + datasource wiring plus
+// a single tiny model so the package generates and the toolchain is proven.
+//
+// The FULL data model (Users, Projects, Videos, Translations, Voices, Payments,
+// Subscriptions, the append-only Credit ledger, Logs, Notifications, API keys —
+// Architecture §4.3 and the requirement's DATABASE section) is delivered and
+// reviewed in PHASE 3. Do not build features against this placeholder.
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Temporary marker model so `prisma generate` succeeds before Phase 3.
+/// Replaced entirely by the real schema in Phase 3.
+model _SchemaPlaceholder {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+}

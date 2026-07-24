@@ -1,0 +1,26 @@
+{
+  "//": "Single source of TypeScript compiler truth. Every package/app extends this so strictness, module resolution, and path aliases stay identical across the whole monorepo — no per-project drift.",
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "paths": {
+      "@hub/shared": ["./packages/shared/src/index.ts"],
+      "@hub/shared/*": ["./packages/shared/src/*"],
+      "@hub/db": ["./packages/db/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "dist", ".next"]
+}

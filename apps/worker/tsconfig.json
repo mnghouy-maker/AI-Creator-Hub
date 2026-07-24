@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "lib": ["ES2022"],
+    "baseUrl": ".",
+    "paths": {
+      "@hub/shared": ["../../packages/shared/src/index.ts"],
+      "@hub/db": ["../../packages/db/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

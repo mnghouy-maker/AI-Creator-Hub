@@ -15,8 +15,8 @@ social content — all in one premium, fast, subscription platform.
 
 > **Build status:** This project is being built in reviewable phases. See the
 > [phase roadmap](docs/ARCHITECTURE.md#11-phase-roadmap--approval-gates).
-> **Phase 1 (Architecture) is complete and awaiting review.** No application
-> code is written until the architecture is approved.
+> **Phases 1–2 complete** — architecture + monorepo scaffold are in place.
+> **Phase 3 (database schema) is next.**
 
 ## What it does
 
@@ -47,15 +47,25 @@ social content — all in one premium, fast, subscription platform.
 
 - 📐 [**Architecture**](docs/ARCHITECTURE.md) — system design, decisions, and the flows that define the product.
 
-## Repository status
-
-This is an early-stage monorepo. The intended shape is:
+## Repository layout
 
 ```
 apps/web · apps/api · apps/worker · packages/db · packages/shared · infra · docs
 ```
 
-The full folder structure and tooling are delivered in **Phase 2**.
+Full explanation in [docs/FOLDER_STRUCTURE.md](docs/FOLDER_STRUCTURE.md).
+
+## Local development
+
+```bash
+cp .env.example .env      # fill in secrets
+pnpm install              # install the whole workspace
+pnpm infra:up             # start Postgres + Redis + MinIO (Docker)
+pnpm db:generate          # generate the Prisma client
+pnpm dev                  # run web + api + worker together
+```
+
+Requires Node 22+ and pnpm 9+.
 
 ---
 

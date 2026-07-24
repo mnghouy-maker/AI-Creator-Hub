@@ -1,0 +1,5 @@
+{
+  "//": "Production build config: excludes tests so they don't ship in the Docker image.",
+  "extends": "./tsconfig.json",
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+}

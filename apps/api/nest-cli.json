@@ -1,0 +1,10 @@
+{
+  "//": "Nest CLI config — tells `nest build`/`nest start` where source lives and to use tsconfig.build.json for production output.",
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "tsConfigPath": "tsconfig.build.json"
+  }
+}

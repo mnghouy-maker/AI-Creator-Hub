@@ -1,0 +1,25 @@
+{
+  "//": "Background job processors (Architecture §4.4). Runs as a SEPARATE process from the API so heavy video encodes can't starve the API event loop and can scale independently. Consumes the same BullMQ queues the API produces to.",
+  "name": "@hub/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "jest --passWithNoTests"
+  },
+  "dependencies": {
+    "@hub/db": "workspace:*",
+    "@hub/shared": "workspace:*",
+    "bullmq": "^5.13.2",
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.2"
+  }
+}

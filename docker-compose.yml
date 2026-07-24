@@ -1,0 +1,62 @@
+# Local development infrastructure. `pnpm infra:up` starts the three stateful
+# services the app depends on, so a new contributor gets a working environment
+# with one command. These mirror what runs as managed services in production
+# (Postgres, Redis, and an S3-compatible store).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: hub-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: hub
+      POSTGRES_PASSWORD: hub
+      POSTGRES_DB: creatorhub
+    ports:
+      - "5432:5432"
+    volumes:
+      - hub-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hub -d creatorhub"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: hub-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - hub-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # MinIO gives us an S3-compatible store locally so upload/download code is
+  # identical in dev and prod (only endpoint + creds change).
+  minio:
+    image: minio/minio:latest
+    container_name: hub-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - hub-minio:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  hub-pg:
+  hub-redis:
+  hub-minio:

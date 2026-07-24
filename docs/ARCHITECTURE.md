@@ -359,9 +359,9 @@ phased delivery requirement.
 
 | Phase | Deliverable | Status |
 |-------|-------------|--------|
-| 1 | System architecture (this document) | ✅ Ready for review |
-| 2 | Monorepo folder structure + tooling | ⏳ Awaiting approval |
-| 3 | Database schema (Prisma) | — |
+| 1 | System architecture (this document) | ✅ Complete |
+| 2 | Monorepo folder structure + tooling | ✅ Complete |
+| 3 | Database schema (Prisma) | ⏳ Next |
 | 4 | Authentication | — |
 | 5 | Dashboard | — |
 | 6 | AI services | — |

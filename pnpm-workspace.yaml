@@ -1,0 +1,6 @@
+# Declares which folders pnpm treats as workspace packages.
+# Keeping apps (deployables) and packages (shared libraries) separate makes the
+# dependency direction obvious: apps depend on packages, never the reverse.
+packages:
+  - "apps/*"
+  - "packages/*"
