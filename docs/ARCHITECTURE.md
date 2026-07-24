@@ -361,8 +361,8 @@ phased delivery requirement.
 |-------|-------------|--------|
 | 1 | System architecture (this document) | ✅ Complete |
 | 2 | Monorepo folder structure + tooling | ✅ Complete |
-| 3 | Database schema (Prisma) | ⏳ Next |
-| 4 | Authentication | — |
+| 3 | Database schema (Prisma) | ✅ Complete |
+| 4 | Authentication | ⏳ Next |
 | 5 | Dashboard | — |
 | 6 | AI services | — |
 | 7 | Payments | — |

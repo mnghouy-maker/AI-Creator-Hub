@@ -1,13 +1,19 @@
 // =============================================================================
-// Prisma schema — PLACEHOLDER for Phase 2.
+// AI Creator Hub — Prisma schema (Phase 3)
 //
-// This file intentionally contains only the generator + datasource wiring plus
-// a single tiny model so the package generates and the toolchain is proven.
+// Design rules this schema follows (from docs/ARCHITECTURE.md):
+//   • Multi-tenant by ORGANIZATION. Every domain row is scoped to an org, and
+//     users reach data through memberships. Each user also gets a *personal*
+//     org on signup, so there is exactly one ownership model everywhere.
+//   • The credit system is split into an APPEND-ONLY ledger (grants/debits/
+//     refunds — never mutated) plus explicit HOLDS (reservations that are later
+//     captured or released). Available balance = ledger sum − active holds.
+//   • Everything expensive is a JOB row with cost/latency metadata, so margins
+//     are observable per feature and per plan.
+//   • Money is stored in integer minor units (cents / credits) — never floats.
 //
-// The FULL data model (Users, Projects, Videos, Translations, Voices, Payments,
-// Subscriptions, the append-only Credit ledger, Logs, Notifications, API keys —
-// Architecture §4.3 and the requirement's DATABASE section) is delivered and
-// reviewed in PHASE 3. Do not build features against this placeholder.
+// Enum values are UPPER_SNAKE (DB convention). The API maps them to the
+// lowercase wire types in @hub/shared at the edge.
 // =============================================================================
 
 generator client {
@@ -19,9 +25,683 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-/// Temporary marker model so `prisma generate` succeeds before Phase 3.
-/// Replaced entirely by the real schema in Phase 3.
-model _SchemaPlaceholder {
-  id        String   @id @default(cuid())
+// ============================================================================
+// ENUMS
+// ============================================================================
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPERADMIN
+}
+
+enum OrgRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum PlanId {
+  FREE
+  PRO
+  BUSINESS
+  AGENCY
+}
+
+enum BillingInterval {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+  INCOMPLETE
+}
+
+enum PaymentStatus {
+  PAID
+  OPEN
+  VOID
+  UNCOLLECTIBLE
+  REFUNDED
+}
+
+enum ProjectType {
+  VIDEO_TRANSLATE
+  SUBTITLES
+  VOICE
+  SCRIPT
+  BLOG
+  SOCIAL
+  IMAGE
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELED
+}
+
+enum VideoStage {
+  EXTRACT
+  TRANSCRIBE
+  TRANSLATE
+  VOICE
+  MERGE
+}
+
+enum LedgerEntryType {
+  GRANT // credits added (plan renewal, referral reward, admin grant)
+  DEBIT // credits consumed by a completed job
+  REFUND // credits returned after a failed job
+  ADJUSTMENT // manual admin correction (audited)
+}
+
+enum HoldStatus {
+  ACTIVE // reserved, job in flight
+  CAPTURED // converted to a debit on success
+  RELEASED // returned on failure/cancel
+}
+
+enum AssetKind {
+  SOURCE_VIDEO
+  RENDERED_VIDEO
+  AUDIO
+  SUBTITLE
+  IMAGE
+  DOCUMENT
+}
+
+enum NotificationType {
+  JOB_COMPLETED
+  JOB_FAILED
+  CREDIT_LOW
+  SUBSCRIPTION
+  SYSTEM
+}
+
+enum ReferralStatus {
+  PENDING // invitee signed up
+  COMPLETED // invitee became active / converted
+  REWARDED // referrer credited
+}
+
+enum CalendarStatus {
+  PLANNED
+  SCHEDULED
+  PUBLISHED
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+// ============================================================================
+// IDENTITY & TENANCY
+// ============================================================================
+
+/// A person. Auth details (OAuth accounts, sessions, 2FA) hang off this.
+/// A User owns no domain data directly — they act *within* organizations, which
+/// keeps a single ownership model across personal and team use.
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  /// Null for OAuth-only accounts; set for email/password logins.
+  passwordHash  String?
+  role          UserRole  @default(USER)
+
+  // --- 2FA (TOTP), detailed in Phase 4 ---
+  twoFactorEnabled Boolean @default(false)
+  totpSecret       String? // encrypted at rest by the app layer
+
+  // --- Referral system ---
+  referralCode String  @unique @default(cuid())
+  referredById String?
+  referredBy   User?   @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals    User[]  @relation("UserReferrals")
+
+  accounts      Account[]
+  sessions      Session[]
+  memberships   Membership[]
+  ownedOrgs     Organization[]     @relation("OrgOwner")
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  createdJobs   Job[]
+  createdProjects Project[]
+  referralsMade Referral[]         @relation("ReferralReferrer")
+  referralGot   Referral[]         @relation("ReferralReferred")
+
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([referredById])
+}
+
+/// OAuth / external provider account (Auth.js shape). One per provider link.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String // "google" | "github" | "credentials"
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+/// Server-side session. The session token lives in a secure, http-only cookie
+/// (Architecture §4.6); nothing sensitive is exposed to the browser JS.
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime
+  // Metadata for the "session management" feature (revoke a device).
+  userAgent    String?
+  ip           String?
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+}
+
+/// Single-use tokens for email verification and password reset (Phase 4).
+model VerificationToken {
+  identifier String // usually the email
+  token      String   @unique
+  expires    DateTime
+  purpose    String // "email_verify" | "password_reset"
+
+  @@unique([identifier, token])
+}
+
+/// The tenant boundary. Owns projects, credits, subscription, and members.
+/// `isPersonal` orgs are auto-created per user so solo users never see "teams".
+model Organization {
+  id         String  @id @default(cuid())
+  name       String
+  slug       String  @unique
+  isPersonal Boolean @default(false)
+  ownerId    String
+  owner      User    @relation("OrgOwner", fields: [ownerId], references: [id])
+
+  members       Membership[]
+  subscription  Subscription?
+  ledgerEntries CreditLedgerEntry[]
+  holds         CreditHold[]
+  projects      Project[]
+  folders       Folder[]
+  tags          Tag[]
+  assets        Asset[]
+  jobs          Job[]
+  invoices      Invoice[]
+  apiKeys       ApiKey[]
+  voicePresets  VoicePreset[]
+  calendar      CalendarEntry[]
+  auditLogs     AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+}
+
+/// User ⇄ Organization link with a role. Drives RBAC inside an org.
+model Membership {
+  id     String  @id @default(cuid())
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orgId  String
+  org    Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  role   OrgRole @default(MEMBER)
+
+  createdAt DateTime @default(now())
+
+  // A user has at most one membership per org.
+  @@unique([userId, orgId])
+  @@index([orgId])
+}
+
+// ============================================================================
+// BILLING & CREDITS
+// ============================================================================
+
+/// One subscription per org, mirrored from Stripe via webhooks (Architecture
+/// §5.3). Stripe is the source of truth; this row is a projection.
+model Subscription {
+  id                   String             @id @default(cuid())
+  orgId                String             @unique
+  org                  Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  plan                 PlanId             @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  interval             BillingInterval    @default(MONTHLY)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+}
+
+/// A billing document mirrored from Stripe. Amounts are integer cents.
+model Invoice {
+  id              String        @id @default(cuid())
+  orgId           String
+  org             Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  stripeInvoiceId String?       @unique
+  amountCents     Int
+  currency        String        @default("usd")
+  status          PaymentStatus @default(OPEN)
+  /// Presigned/hosted URL of the invoice PDF.
+  pdfUrl          String?
+  periodStart     DateTime?
+  periodEnd       DateTime?
+  createdAt       DateTime      @default(now())
+
+  @@index([orgId, createdAt])
+}
+
+/// Discount codes for checkout. Redemptions counted for limited-use coupons.
+model Coupon {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  percentOff     Int? // 0–100
+  amountOffCents Int?
+  maxRedemptions Int?
+  timesRedeemed  Int       @default(0)
+  expiresAt      DateTime?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+}
+
+/// APPEND-ONLY credit ledger. Balance = SUM(amount) over an org's entries.
+/// We NEVER update an existing row — corrections are new ADJUSTMENT entries.
+/// `amount` is signed: +grant/+refund, −debit. This gives a perfect audit
+/// trail and makes disputes trivial (Architecture §4.3).
+model CreditLedgerEntry {
+  id          String          @id @default(cuid())
+  orgId       String
+  org         Organization    @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  type        LedgerEntryType
+  /// Signed credit delta.
+  amount      Int
+  description String?
+  /// Grants can expire (e.g. monthly plan credits). Null = never expires.
+  expiresAt   DateTime?
+  /// Links a DEBIT/REFUND back to the job that caused it.
+  jobId       String?
+  job         Job?            @relation(fields: [jobId], references: [id])
+  createdById String?
+  createdAt   DateTime        @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([jobId])
+}
+
+/// A reservation of credits while a job is in flight. Available balance
+/// subtracts ACTIVE holds. On success → CAPTURED (a DEBIT ledger entry is
+/// written); on failure → RELEASED (no charge). One hold per job.
+model CreditHold {
+  id        String       @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  amount    Int // positive number of credits reserved
+  status    HoldStatus   @default(ACTIVE)
+  jobId     String?      @unique
+  createdAt DateTime     @default(now())
+  settledAt DateTime?
+
+  @@index([orgId, status])
+}
+
+// ============================================================================
+// PROJECTS, FILES & LIBRARY
+// ============================================================================
+
+/// A saved unit of work (a translated video, a blog draft, a voiceover…).
+/// The `type` selects icons, filters, and which cost rule applies.
+model Project {
+  id          String       @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdById String?
+  createdBy   User?        @relation(fields: [createdById], references: [id])
+  type        ProjectType
+  title       String
+  favorite    Boolean      @default(false)
+  folderId    String?
+  folder      Folder?      @relation(fields: [folderId], references: [id])
+  /// Free-form per-type payload (generated text, settings, etc.).
+  metadata    Json?
+
+  tags   ProjectTag[]
+  assets Asset[]
+  jobs   Job[]
+  video  Video?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([orgId, type])
+  @@index([orgId, favorite])
+  @@index([folderId])
+}
+
+/// Nestable folders for organizing projects (self-referential tree).
+model Folder {
+  id       String       @id @default(cuid())
+  orgId    String
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name     String
+  parentId String?
+  parent   Folder?      @relation("FolderTree", fields: [parentId], references: [id])
+  children Folder[]     @relation("FolderTree")
+  projects Project[]
+
+  createdAt DateTime @default(now())
+
+  @@index([orgId, parentId])
+}
+
+/// Org-scoped tag; many-to-many with projects via ProjectTag.
+model Tag {
+  id       String       @id @default(cuid())
+  orgId    String
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name     String
+  projects ProjectTag[]
+
+  @@unique([orgId, name])
+}
+
+model ProjectTag {
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tagId     String
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, tagId])
+  @@index([tagId])
+}
+
+/// A file in object storage (S3/MinIO). We store only the KEY + metadata; bytes
+/// live in S3 and are served via short-lived presigned URLs (Architecture §4.5).
+model Asset {
+  id              String       @id @default(cuid())
+  orgId           String
+  org             Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  projectId       String?
+  project         Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  kind            AssetKind
+  s3Key           String       @unique
+  mimeType        String?
+  sizeBytes       BigInt?
+  durationSeconds Int? // for audio/video, used by the credit estimate
+  createdAt       DateTime     @default(now())
+
+  @@index([orgId])
+  @@index([projectId])
+}
+
+// ============================================================================
+// AI JOBS & VIDEO PIPELINE
+// ============================================================================
+
+/// Every billable/async operation is a Job (Architecture §5.1). Carries the
+/// credit hold, live progress, and provider cost metadata for margin analysis.
+model Job {
+  id             String      @id @default(cuid())
+  orgId          String
+  org            Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  projectId      String?
+  project        Project?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdById    String?
+  createdBy      User?       @relation(fields: [createdById], references: [id])
+
+  /// BullMQ queue this ran on ("ai-text" | "video-translate" | ...).
+  queue          String
+  /// Billable action key from @hub/shared (video_translate, blog, …).
+  action         String
+  status         JobStatus   @default(QUEUED)
+  /// 0–100 for the progress bar.
+  progress       Int         @default(0)
+  /// Only meaningful for the video pipeline.
+  stage          VideoStage?
+
+  /// Credits actually charged once settled (null until CAPTURED).
+  creditsCharged Int?
+  error          String?
+  /// Observability: { provider, tokens, seconds, costUsd, latencyMs } (§7).
+  providerMeta   Json?
+  /// Guards against double-processing on retry (Architecture §2).
+  idempotencyKey String?     @unique
+
+  ledgerEntries CreditLedgerEntry[]
+
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([orgId, status])
+  @@index([orgId, createdAt])
+  @@index([status])
+}
+
+/// Video-specific metadata for a VIDEO_TRANSLATE project (one per project).
+model Video {
+  id              String   @id @default(cuid())
+  projectId       String   @unique
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sourceAssetId   String? // the uploaded original (Asset)
+  sourceLanguage  String? // detected/declared source language code
+  durationSeconds Int?
+  width           Int?
+  height          Int?
+
+  translations Translation[]
+
+  createdAt DateTime @default(now())
+}
+
+/// One translated rendition of a video into a target language. A single source
+/// video can have many translations (Khmer, Thai, …), each with its own
+/// subtitle + dubbed-audio + rendered-video assets and chosen voice.
+model Translation {
+  id                  String    @id @default(cuid())
+  videoId             String
+  video               Video     @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  targetLanguage      String
+  voiceId             String? // from the @hub/shared voice catalog or a preset
+  status              JobStatus @default(QUEUED)
+  subtitleAssetId     String?
+  dubbedAudioAssetId  String?
+  renderedVideoAssetId String?
+
+  createdAt DateTime @default(now())
+
+  @@index([videoId])
+}
+
+/// Saved voice preset (name + tuning). Placeholder home for future voice
+/// cloning (Architecture "Voice cloning (future)"). Satisfies the DB "Voices"
+/// entity as an org-owned, reusable configuration.
+model VoicePreset {
+  id        String       @id @default(cuid())
+  orgId     String
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name      String
+  baseVoice String // id from the shared voice catalog
+  speed     Float        @default(1.0)
+  pitch     Int          @default(0)
+  createdAt DateTime     @default(now())
+
+  @@index([orgId])
+}
+
+// ============================================================================
+// CONTENT CALENDAR
+// ============================================================================
+
+/// Planned/scheduled content item, optionally linked to a project.
+model CalendarEntry {
+  id          String         @id @default(cuid())
+  orgId       String
+  org         Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  projectId   String?
+  title       String
+  channel     String? // "youtube" | "tiktok" | ...
+  scheduledAt DateTime
+  status      CalendarStatus @default(PLANNED)
+  notes       String?
+  createdById String?
+  createdAt   DateTime       @default(now())
+
+  @@index([orgId, scheduledAt])
+}
+
+// ============================================================================
+// NOTIFICATIONS
+// ============================================================================
+
+/// In-app notification (also fanned out to email where relevant, Phase 5).
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  body      String?
+  data      Json?
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, read])
+  @@index([userId, createdAt])
+}
+
+// ============================================================================
+// REFERRALS
+// ============================================================================
+
+/// A referral event. Reward credits are granted to the referrer via a GRANT
+/// ledger entry once status reaches REWARDED (keeps credits auditable).
+model Referral {
+  id           String         @id @default(cuid())
+  referrerId   String
+  referrer     User           @relation("ReferralReferrer", fields: [referrerId], references: [id])
+  referredId   String?        @unique
+  referred     User?          @relation("ReferralReferred", fields: [referredId], references: [id])
+  code         String
+  status       ReferralStatus @default(PENDING)
+  rewardCredits Int           @default(0)
+  createdAt    DateTime       @default(now())
+
+  @@index([referrerId])
+}
+
+// ============================================================================
+// API KEYS (Agency plan)
+// ============================================================================
+
+/// Programmatic access key. Only a HASH is stored; the plaintext is shown once
+/// at creation. `prefix` lets us display a recognizable, non-secret label.
+model ApiKey {
+  id          String       @id @default(cuid())
+  orgId       String
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  name        String
+  prefix      String // e.g. "hub_live_ab12" (non-secret display)
+  hashedKey   String       @unique
+  lastUsedAt  DateTime?
+  createdById String?
+  revokedAt   DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([orgId])
+}
+
+// ============================================================================
+// ADMIN, AUDIT & SYSTEM
+// ============================================================================
+
+/// Immutable audit trail for sensitive actions (billing, credit adjustments,
+/// admin operations) — Architecture §6.
+model AuditLog {
+  id         String        @id @default(cuid())
+  orgId      String?
+  org        Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+  actorId    String?
+  actor      User?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  action     String // "credit.adjust", "subscription.cancel", ...
+  targetType String?
+  targetId   String?
+  metadata   Json?
+  ip         String?
+  createdAt  DateTime      @default(now())
+
+  @@index([orgId, createdAt])
+  @@index([actorId])
+}
+
+/// Application error log surfaced in the admin panel ("Error Logs").
+model ErrorLog {
+  id        String   @id @default(cuid())
+  service   String // "api" | "worker" | queue name
+  level     LogLevel @default(ERROR)
+  message   String
+  stack     String?  @db.Text
+  context   Json?
+  createdAt DateTime @default(now())
+
+  @@index([service, createdAt])
+  @@index([level])
+}
+
+/// Admin announcement shown in-app (banner/toast).
+model Announcement {
+  id        String    @id @default(cuid())
+  title     String
+  body      String
+  level     LogLevel  @default(INFO)
+  active    Boolean   @default(true)
+  startsAt  DateTime?
+  endsAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+/// Feature flags / toggles controlled from the admin panel.
+model FeatureFlag {
+  key           String   @id
+  enabled       Boolean  @default(false)
+  description   String?
+  rolloutPercent Int     @default(0) // 0–100 gradual rollout
+  updatedAt     DateTime @updatedAt
+}
+
+/// Arbitrary system settings (key → JSON). Backs the admin "System Settings".
+model SystemSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
 }

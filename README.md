@@ -15,8 +15,8 @@ social content — all in one premium, fast, subscription platform.
 
 > **Build status:** This project is being built in reviewable phases. See the
 > [phase roadmap](docs/ARCHITECTURE.md#11-phase-roadmap--approval-gates).
-> **Phases 1–2 complete** — architecture + monorepo scaffold are in place.
-> **Phase 3 (database schema) is next.**
+> **Phases 1–3 complete** — architecture, monorepo scaffold, and the full
+> database schema are in place. **Phase 4 (authentication) is next.**
 
 ## What it does
 
@@ -46,6 +46,8 @@ social content — all in one premium, fast, subscription platform.
 ## Documentation
 
 - 📐 [**Architecture**](docs/ARCHITECTURE.md) — system design, decisions, and the flows that define the product.
+- 🗂️ [**Folder structure**](docs/FOLDER_STRUCTURE.md) — what lives where and why.
+- 🗄️ [**Data model**](docs/DATA_MODEL.md) — the database schema explained.
 
 ## Repository layout
 
