@@ -1,32 +1,107 @@
-/* Global styles + design tokens. The token values mirror the approved Phase-1
-   prototype so the production UI inherits the exact same look. Real components
-   (nav, dashboard, pricing) are built on these in Phase 5. */
+/* =============================================================================
+   Design system. Token values are ported straight from the approved Phase-1
+   prototype ("dubbing studio": cool ink grounds, coral signal accent, teal
+   output accent) so the production UI inherits the exact validated look.
+
+   Theme strategy: tokens live on :root (light) and .dark (dark). next-themes
+   toggles the `.dark` class on <html>. Components read semantic tokens only —
+   never raw colors — so light/dark stays in sync in one place.
+   ============================================================================ */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    /* Surfaces + text (HSL triplets, consumed via hsl(var(--x))). */
     --bg: 210 20% 97%;
     --surface: 0 0% 100%;
+    --surface-2: 210 20% 98.5%;
+    --raise: 210 25% 99%;
     --border: 220 16% 91%;
+    --border-2: 220 16% 94%;
     --text: 222 34% 10%;
     --muted: 220 9% 40%;
-    --accent: 12 88% 56%; /* coral */
-    --accent-2: 174 82% 35%; /* teal */
+    --faint: 220 10% 55%;
+
+    /* Brand + semantic. Accent = coral signal; accent-2 = teal (output). */
+    --accent: 12 88% 56%;
+    --accent-fg: 0 0% 100%;
+    --accent-2: 174 82% 35%;
+    --good: 145 58% 39%;
+    --warn: 38 78% 45%;
+    --crit: 2 66% 55%;
+
+    --ring: 12 88% 56%;
+    --radius: 0.85rem;
   }
+
   .dark {
     --bg: 220 30% 6%;
     --surface: 222 27% 9%;
+    --surface-2: 220 24% 12%;
+    --raise: 219 22% 15%;
     --border: 218 22% 18%;
+    --border-2: 220 20% 14%;
     --text: 220 30% 92%;
     --muted: 218 14% 66%;
+    --faint: 218 12% 52%;
+
     --accent: 12 100% 64%;
+    --accent-fg: 20 60% 6%;
     --accent-2: 172 65% 51%;
+    --good: 145 55% 53%;
+    --warn: 45 84% 57%;
+    --crit: 2 82% 71%;
+
+    --ring: 12 100% 64%;
+  }
+
+  * {
+    border-color: hsl(var(--border));
   }
   body {
     background: hsl(var(--bg));
     color: hsl(var(--text));
+    font-family:
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif;
     -webkit-font-smoothing: antialiased;
+  }
+  /* Keyboard focus is always visible (a11y). */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px hsl(var(--ring) / 0.35);
+    border-radius: 10px;
+  }
+  ::selection {
+    background: hsl(var(--accent));
+    color: hsl(var(--accent-fg));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      animation-duration: 0.001ms !important;
+      transition-duration: 0.001ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .font-mono {
+    font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+  /* Subtle ambient gradient used behind hero + pricing (matches prototype). */
+  .grad-hero {
+    background:
+      radial-gradient(120% 120% at 12% -5%, hsl(var(--accent) / 0.12), transparent 46%),
+      radial-gradient(120% 120% at 100% 12%, hsl(var(--accent-2) / 0.1), transparent 42%);
   }
 }

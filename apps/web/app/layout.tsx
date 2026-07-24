@@ -1,9 +1,11 @@
 /**
- * Root layout — wraps every page. Sets metadata (SEO for the marketing site)
- * and loads global tokens. Theme provider + fonts are added in Phase 5.
+ * Root layout — wraps every page with the theme provider and global tokens.
+ * `suppressHydrationWarning` is required because next-themes sets the theme
+ * class on <html> before React hydrates.
  */
 import type { Metadata } from 'next';
 import './globals.css';
+import { ThemeProvider } from '@/components/theme-provider';
 
 export const metadata: Metadata = {
   title: 'AI Creator Hub — AI content studio',
@@ -14,7 +16,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>{children}</body>
+      <body>
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
