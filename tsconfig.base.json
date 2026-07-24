@@ -15,12 +15,7 @@
     "declaration": true,
     "sourceMap": true,
     "resolveJsonModule": true,
-    "isolatedModules": true,
-    "paths": {
-      "@hub/shared": ["./packages/shared/src/index.ts"],
-      "@hub/shared/*": ["./packages/shared/src/*"],
-      "@hub/db": ["./packages/db/src/index.ts"]
-    }
+    "isolatedModules": true
   },
   "exclude": ["node_modules", "dist", ".next"]
 }

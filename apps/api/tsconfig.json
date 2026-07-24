@@ -8,13 +8,7 @@
     "emitDecoratorMetadata": true,
     "target": "ES2022",
     "outDir": "dist",
-    "declaration": false,
-    "baseUrl": ".",
-    "paths": {
-      "@hub/shared": ["../../packages/shared/src/index.ts"],
-      "@hub/db": ["../../packages/db/src/index.ts"],
-      "@hub/providers": ["../../packages/providers/src/index.ts"]
-    }
+    "declaration": false
   },
   "include": ["src"]
 }

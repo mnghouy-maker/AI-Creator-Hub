@@ -10,6 +10,7 @@
   },
   "scripts": {
     "//": "Turborepo fans these scripts out to every workspace that defines them, with caching.",
+    "predev": "pnpm --filter @hub/db generate && pnpm --filter \"@hub/shared\" --filter \"@hub/db\" --filter \"@hub/providers\" build",
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint",

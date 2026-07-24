@@ -1,0 +1,36 @@
+# Continuous delivery. On pushes to the default branch, build all three
+# production images to validate the Dockerfiles end-to-end (build @hub/* deps in
+# order, generate Prisma client, compile clean dist entrypoints). Pushing images
+# to a registry + deploying is a one-line addition once registry creds/host are
+# configured (kept out here so the pipeline needs no secrets to pass).
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [api, worker, web]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.service }} image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/docker/${{ matrix.service }}.Dockerfile
+          push: false
+          tags: ai-creator-hub-${{ matrix.service }}:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # To ship, add a registry login + `push: true` with an image tag, then an
+      # ssh/compose step on the host: `docker compose -f infra/docker-compose.prod.yml up -d`.

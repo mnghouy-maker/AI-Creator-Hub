@@ -1,13 +1,10 @@
 {
-  "//": "Consumed as source (via path aliases) by api/worker, like @hub/shared. It imports shared's source, so we don't constrain rootDir or emit here — typecheck only. Runtime compilation happens in the app that imports it.",
+  "//": "Emits to dist so apps consume compiled JS (clean container entrypoints). @hub/shared resolves via node_modules to its built types — no path alias — so this package only compiles its own src (rootDir stays clean).",
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "noEmit": true,
-    "lib": ["ES2022"],
-    "baseUrl": ".",
-    "paths": {
-      "@hub/shared": ["../shared/src/index.ts"]
-    }
+    "rootDir": "src",
+    "outDir": "dist",
+    "lib": ["ES2022"]
   },
   "include": ["src"]
 }

@@ -1,25 +1,16 @@
 /**
  * Next.js config.
- * - transpilePackages: compile the local @hub/shared TS source directly (no
- *   pre-build step needed in dev).
- * - extensionAlias: @hub/shared uses NodeNext-style `.js` import specifiers
- *   (required so the API/worker compile), which point at `.ts` sources. This
- *   tells webpack to resolve those `.js` specifiers to the real `.ts` files, so
- *   one import style works across bundler + Node without a build step.
+ * - output 'standalone': emit a self-contained server bundle for a minimal
+ *   production Docker image (only the files the server needs).
+ * - @hub/shared is consumed as a compiled package from node_modules (Phase 9),
+ *   so no transpilePackages/extensionAlias shims are needed.
  * - Security headers applied at the framework edge (defense in depth alongside
  *   Nginx/Cloudflare in production) — Architecture §6.
  */
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@hub/shared'],
-  webpack: (config) => {
-    config.resolve.extensionAlias = {
-      '.js': ['.ts', '.tsx', '.js'],
-      '.mjs': ['.mts', '.mjs'],
-    };
-    return config;
-  },
+  output: 'standalone',
   async headers() {
     return [
       {

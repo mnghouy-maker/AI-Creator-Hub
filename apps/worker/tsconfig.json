@@ -2,15 +2,10 @@
   "//": "No rootDir constraint: the worker imports @hub/* source (shared/db/providers) via path aliases, so tsc must accept files outside src. Runtime is tsx in dev; container packaging is handled in Phase 9 (Deployment).",
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "rootDir": "src",
     "outDir": "dist",
     "declaration": false,
-    "lib": ["ES2022"],
-    "baseUrl": ".",
-    "paths": {
-      "@hub/shared": ["../../packages/shared/src/index.ts"],
-      "@hub/db": ["../../packages/db/src/index.ts"],
-      "@hub/providers": ["../../packages/providers/src/index.ts"]
-    }
+    "lib": ["ES2022"]
   },
   "include": ["src"]
 }
