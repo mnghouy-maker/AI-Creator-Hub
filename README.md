@@ -22,9 +22,9 @@ social content — all in one premium, fast, subscription platform.
 > idempotent webhooks, invoices, referrals), a role-gated admin panel
 > (revenue, users, queue, feature flags), and deployment (fixed monorepo
 > container packaging, production compose stack, CD pipeline). The whole
-> workspace passes typecheck,
-> lint, and build; the compiled API and worker boot from their dist output.
-> **Phase 10 (testing) is next — the final phase.**
+> workspace passes typecheck, lint, and build; the compiled API and worker boot
+> from their dist output, and a **34-test suite passes** (including credit-ledger
+> integration tests against a real Postgres). **All 10 phases complete.**
 
 ## What it does
 
@@ -62,6 +62,7 @@ social content — all in one premium, fast, subscription platform.
 - 💳 [**Payments**](docs/PAYMENTS.md) — Stripe checkout, idempotent webhooks, invoices, and referrals.
 - 🛠️ [**Admin Panel**](docs/ADMIN.md) — RBAC, revenue metrics, user management, and feature flags.
 - 🚀 [**Deployment**](docs/DEPLOYMENT.md) — container builds, the production stack, CD, and migrations.
+- 🧪 [**Testing**](docs/TESTING.md) — the risk-weighted suite and the ledger integration tests.
 
 ## Repository layout
 

@@ -12,6 +12,24 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    # A throwaway Postgres so the credit-ledger integration tests run for real
+    # (they self-skip when TEST_DATABASE_URL is absent).
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: hub
+          POSTGRES_PASSWORD: hub
+          POSTGRES_DB: creatorhub_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U hub"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://hub:hub@localhost:5432/creatorhub_test
     steps:
       - uses: actions/checkout@v4
 
@@ -41,6 +59,11 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Sync schema to the test database
+        run: pnpm --filter @hub/db exec prisma db push --skip-generate
+        env:
+          DATABASE_URL: ${{ env.TEST_DATABASE_URL }}
 
       - name: Test
         run: pnpm test
