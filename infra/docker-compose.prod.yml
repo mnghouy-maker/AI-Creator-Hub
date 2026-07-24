@@ -42,7 +42,9 @@ services:
     volumes:
       - minio:/data
 
-  # One-off: apply migrations, then exit. API/worker wait for it to complete.
+  # One-off: apply the schema, then exit. API/worker wait for it to complete.
+  # This project uses `prisma db push` (no migration files), so push — not
+  # `migrate deploy` — is what creates/updates the tables.
   migrate:
     build:
       context: ..
@@ -51,7 +53,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: ['pnpm', '--filter', '@hub/db', 'migrate:deploy']
+    command: ['pnpm', '--filter', '@hub/db', 'db:push']
     restart: 'no'
 
   api:

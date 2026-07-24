@@ -41,9 +41,10 @@ services:
     dockerfilePath: ./infra/docker/api.Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
-    # Apply the schema before each deploy (this project uses `db push`, not
-    # migration files). Idempotent, so it's safe to run on every deploy.
-    preDeployCommand: pnpm --filter @hub/db db:push
+    # Apply the schema, then start the API. Done in the start command (not
+    # `preDeployCommand`, which is a paid-tier feature) so it also works on free.
+    # `db push` is idempotent, so re-running it on every cold start is a no-op.
+    dockerCommand: sh -c "pnpm --filter @hub/db db:push && node apps/api/dist/main.js"
     envVars:
       - key: NODE_ENV
         value: production
