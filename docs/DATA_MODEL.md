@@ -25,17 +25,17 @@ erDiagram
 
 Every user gets a **personal organization** (`isPersonal = true`) at signup, so
 a solo creator never encounters "team" concepts, yet the exact same ownership
-model powers Business/Agency teams. Access is always: *user → membership → org
-→ data*. There is no user-owned domain data anywhere — one rule, no exceptions.
+model powers Business/Agency teams. Access is always: _user → membership → org
+→ data_. There is no user-owned domain data anywhere — one rule, no exceptions.
 
 ## The credit system (the part worth reading twice)
 
 Two tables, because reservations and settled history have different lifecycles:
 
-| Table | Mutability | Role |
-|-------|-----------|------|
-| `CreditLedgerEntry` | **Append-only** | Settled truth: `GRANT`, `DEBIT`, `REFUND`, `ADJUSTMENT`. `amount` is signed. |
-| `CreditHold` | Status transitions | A reservation while a job runs: `ACTIVE → CAPTURED` (success) or `→ RELEASED` (failure). |
+| Table               | Mutability         | Role                                                                                     |
+| ------------------- | ------------------ | ---------------------------------------------------------------------------------------- |
+| `CreditLedgerEntry` | **Append-only**    | Settled truth: `GRANT`, `DEBIT`, `REFUND`, `ADJUSTMENT`. `amount` is signed.             |
+| `CreditHold`        | Status transitions | A reservation while a job runs: `ACTIVE → CAPTURED` (success) or `→ RELEASED` (failure). |
 
 - **Balance** = `SUM(CreditLedgerEntry.amount)` for the org.
 - **Available balance** = balance − `SUM(active holds)`.
@@ -71,24 +71,24 @@ estimate reads to size a video job's hold.
 
 ## Everything the requirements asked for, mapped
 
-| Requirement entity | Model(s) |
-|--------------------|----------|
-| Users | `User`, `Account`, `Session`, `VerificationToken` |
-| Projects | `Project`, `Folder`, `Tag`, `ProjectTag`, `Asset` |
-| Videos / Translations / Voices | `Video`, `Translation`, `VoicePreset` |
-| Payments / Subscriptions | `Subscription`, `Invoice`, `Coupon` |
-| Credits | `CreditLedgerEntry`, `CreditHold` |
-| Logs | `AuditLog`, `ErrorLog` |
-| Notifications | `Notification` |
-| API Keys | `ApiKey` |
-| Referral system | `Referral` (+ `User.referralCode`) |
-| Content calendar | `CalendarEntry` |
-| Admin (announcements, flags, settings) | `Announcement`, `FeatureFlag`, `SystemSetting` |
+| Requirement entity                     | Model(s)                                          |
+| -------------------------------------- | ------------------------------------------------- |
+| Users                                  | `User`, `Account`, `Session`, `VerificationToken` |
+| Projects                               | `Project`, `Folder`, `Tag`, `ProjectTag`, `Asset` |
+| Videos / Translations / Voices         | `Video`, `Translation`, `VoicePreset`             |
+| Payments / Subscriptions               | `Subscription`, `Invoice`, `Coupon`               |
+| Credits                                | `CreditLedgerEntry`, `CreditHold`                 |
+| Logs                                   | `AuditLog`, `ErrorLog`                            |
+| Notifications                          | `Notification`                                    |
+| API Keys                               | `ApiKey`                                          |
+| Referral system                        | `Referral` (+ `User.referralCode`)                |
+| Content calendar                       | `CalendarEntry`                                   |
+| Admin (announcements, flags, settings) | `Announcement`, `FeatureFlag`, `SystemSetting`    |
 
 ## Security & integrity choices
 
 - **Cascade vs. SetNull** is deliberate: deleting an org cascades its data;
-  deleting a user who *created* a project sets `createdById` null (the project
+  deleting a user who _created_ a project sets `createdById` null (the project
   survives for the org). Nothing important is silently destroyed.
 - **Money/credits are integers** (cents, credits) — never floats.
 - **Secrets are hashed**: `ApiKey.hashedKey` (plaintext shown once);

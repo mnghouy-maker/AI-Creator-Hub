@@ -10,7 +10,7 @@
     "start": "node dist/main.js",
     "lint": "eslint src",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "jest --passWithNoTests"
+    "test": "echo \"(worker) no tests yet — suite added in Phase 10\""
   },
   "dependencies": {
     "@hub/db": "workspace:*",

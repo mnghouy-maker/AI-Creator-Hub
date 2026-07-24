@@ -14,13 +14,7 @@ export type JobStatus = 'queued' | 'processing' | 'completed' | 'failed' | 'canc
 
 /** Which tool produced a project — drives icons, filters, and cost rules. */
 export type ProjectType =
-  | 'video_translate'
-  | 'subtitles'
-  | 'voice'
-  | 'script'
-  | 'blog'
-  | 'social'
-  | 'image';
+  'video_translate' | 'subtitles' | 'voice' | 'script' | 'blog' | 'social' | 'image';
 
 /** Stages the video pipeline reports for the live progress bar (Architecture §5.2). */
 export const VIDEO_STAGES = ['extract', 'transcribe', 'translate', 'voice', 'merge'] as const;
@@ -30,9 +24,4 @@ export type VideoStage = (typeof VIDEO_STAGES)[number];
 export type LedgerEntryType = 'grant' | 'hold' | 'debit' | 'refund' | 'adjustment';
 
 /** Subscription state mirrored from Stripe (Architecture §5.3). */
-export type SubscriptionStatus =
-  | 'active'
-  | 'trialing'
-  | 'past_due'
-  | 'canceled'
-  | 'incomplete';
+export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'canceled' | 'incomplete';

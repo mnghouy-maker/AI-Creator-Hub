@@ -15,24 +15,25 @@ social content — all in one premium, fast, subscription platform.
 
 > **Build status:** This project is being built in reviewable phases. See the
 > [phase roadmap](docs/ARCHITECTURE.md#11-phase-roadmap--approval-gates).
-> **Phases 1–3 complete** — architecture, monorepo scaffold, and the full
-> database schema are in place. **Phase 4 (authentication) is next.**
+> **Phases 1–4 complete** — architecture, monorepo scaffold, full database
+> schema, and a native NestJS auth system (email/OAuth/2FA/sessions) that
+> passes typecheck, lint, build, and CI. **Phase 5 (dashboard) is next.**
 
 ## What it does
 
-| Capability | Description |
-|------------|-------------|
+| Capability                 | Description                                                                                                                                                                     |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 🎥 **AI Video Translator** | Upload a video → dubbed audio + subtitles in 13+ languages (English, Khmer, Thai, Japanese, Chinese, Vietnamese, French, Spanish, German, Korean, Arabic, Portuguese, Russian). |
-| 📝 **Subtitle Generator** | Auto-transcribe and export `.srt` / `.vtt`. |
-| 🔊 **AI Voice Generator** | Natural TTS voices (male / female / child / professional / news / narration) with speed & pitch control. |
-| ✍️ **Script Writer** | YouTube, TikTok, Instagram, Facebook, ads, reviews, podcasts, educational. |
-| 📰 **Blog Writer** | SEO-optimized long-form with headings, meta, keywords, tables, CTAs. |
-| 📣 **Social Tools** | Titles, descriptions, hashtags, hooks, thumbnail ideas, captions. |
-| 🖼️ **AI Image Generator** | Integrated image generation. |
-| 🗂️ **Projects & Storage** | Folders, tags, search, favorite, rename, duplicate, history. |
-| 📅 **Content Calendar** | Plan and schedule content. |
-| 💳 **Billing** | Stripe + PayPal, monthly/yearly, coupons, invoices, upgrade/downgrade. |
-| 🛠️ **Admin** | Users, revenue, queue monitoring, error logs, credits, announcements, feature flags. |
+| 📝 **Subtitle Generator**  | Auto-transcribe and export `.srt` / `.vtt`.                                                                                                                                     |
+| 🔊 **AI Voice Generator**  | Natural TTS voices (male / female / child / professional / news / narration) with speed & pitch control.                                                                        |
+| ✍️ **Script Writer**       | YouTube, TikTok, Instagram, Facebook, ads, reviews, podcasts, educational.                                                                                                      |
+| 📰 **Blog Writer**         | SEO-optimized long-form with headings, meta, keywords, tables, CTAs.                                                                                                            |
+| 📣 **Social Tools**        | Titles, descriptions, hashtags, hooks, thumbnail ideas, captions.                                                                                                               |
+| 🖼️ **AI Image Generator**  | Integrated image generation.                                                                                                                                                    |
+| 🗂️ **Projects & Storage**  | Folders, tags, search, favorite, rename, duplicate, history.                                                                                                                    |
+| 📅 **Content Calendar**    | Plan and schedule content.                                                                                                                                                      |
+| 💳 **Billing**             | Stripe + PayPal, monthly/yearly, coupons, invoices, upgrade/downgrade.                                                                                                          |
+| 🛠️ **Admin**               | Users, revenue, queue monitoring, error logs, credits, announcements, feature flags.                                                                                            |
 
 ## Tech stack
 
@@ -48,6 +49,7 @@ social content — all in one premium, fast, subscription platform.
 - 📐 [**Architecture**](docs/ARCHITECTURE.md) — system design, decisions, and the flows that define the product.
 - 🗂️ [**Folder structure**](docs/FOLDER_STRUCTURE.md) — what lives where and why.
 - 🗄️ [**Data model**](docs/DATA_MODEL.md) — the database schema explained.
+- 🔐 [**Authentication**](docs/AUTHENTICATION.md) — sessions, OAuth, 2FA, and the security model.
 
 ## Repository layout
 

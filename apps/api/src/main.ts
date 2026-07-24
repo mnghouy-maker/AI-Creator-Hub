@@ -9,26 +9,26 @@
  */
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   app.use(helmet());
+  // Parse the http-only session cookie so guards can read it (Architecture §4.6).
+  app.use(cookieParser());
   app.enableCors({
     origin: process.env.APP_URL ?? 'http://localhost:3000',
-    credentials: true, // cookies carry the session (Architecture §4.6)
+    credentials: true, // cookies carry the session
   });
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(
-    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
-  );
+  // Request-body validation is handled per-route by ZodValidationPipe (one
+  // validation language shared with the frontend).
 
   const port = Number(process.env.PORT ?? 4000);
   await app.listen(port);
-  // eslint-disable-next-line no-console
   console.log(`[api] listening on http://localhost:${port}/api`);
 }
 

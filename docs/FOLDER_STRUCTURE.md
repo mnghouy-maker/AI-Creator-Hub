@@ -1,7 +1,7 @@
 # Folder Structure & Tooling (Phase 2)
 
 This document explains **what lives where and why**. The guiding rule from
-`ARCHITECTURE.md`: *apps depend on packages, never the reverse*, and each
+`ARCHITECTURE.md`: _apps depend on packages, never the reverse_, and each
 deployable ships independently.
 
 ## Top level
@@ -41,8 +41,10 @@ ai-creator-hub/
 ## The packages
 
 ### `packages/shared` — the domain layer
+
 Framework-agnostic TypeScript. The single source of truth for the business
 model:
+
 - `plans.ts` — the four plans, prices, credit grants, and entitlements (gates).
 - `credits.ts` — the cost of every billable action + `estimateCredits()`.
 - `languages.ts` / `voices.ts` — the supported catalogs.
@@ -52,17 +54,18 @@ Because these are data, **pricing and limits change without touching feature
 code** (Architecture §9).
 
 ### `packages/db` — the data layer
+
 Owns `prisma/schema.prisma`, migrations, and a **singleton `PrismaClient`** so
 every app talks to Postgres the same way and doesn't exhaust the connection
 pool. The schema here is a **placeholder** — the full model is Phase 3.
 
 ## The apps
 
-| App | Framework | Role | Talks to |
-|-----|-----------|------|----------|
-| `web` | Next.js (App Router) | UI, marketing, dashboard, admin | `api` (HTTP), `@hub/shared` |
-| `api` | NestJS | Auth, billing, projects, admin; **produces** jobs | Postgres, Redis, S3, providers |
-| `worker` | Node + BullMQ | **Consumes** jobs; does the expensive AI work | Postgres, Redis, S3, providers |
+| App      | Framework            | Role                                              | Talks to                       |
+| -------- | -------------------- | ------------------------------------------------- | ------------------------------ |
+| `web`    | Next.js (App Router) | UI, marketing, dashboard, admin                   | `api` (HTTP), `@hub/shared`    |
+| `api`    | NestJS               | Auth, billing, projects, admin; **produces** jobs | Postgres, Redis, S3, providers |
+| `worker` | Node + BullMQ        | **Consumes** jobs; does the expensive AI work     | Postgres, Redis, S3, providers |
 
 The API and worker are split on purpose (Architecture §4.4): a burst of video
 encodes must never block the API's event loop, and the two scale on different

@@ -32,15 +32,15 @@ Both of those constraints shape the architecture below.
 
 ## 2. Architectural principles (the rules we do not break)
 
-| # | Principle | Consequence in this codebase |
-|---|-----------|------------------------------|
-| 1 | **Money-spending work is asynchronous.** | Anything that costs credits or takes >1s runs as a background **job**, never inline in an HTTP request. Video translation can take minutes; the API must never block on it. |
-| 2 | **Credits are debited before work starts, refunded on failure.** | A job cannot begin until credits are reserved. This prevents users from spending money we can't bill and prevents us from doing work we can't charge for. |
-| 3 | **The backend is the only thing that talks to paid APIs.** | No AI/Stripe/S3 secret ever reaches the browser. The frontend calls *our* API; our API calls OpenAI/Anthropic/ElevenLabs/Stripe/S3. |
-| 4 | **Multi-tenant isolation is enforced at the data layer.** | Every domain row carries a `userId` (and, for teams, an `organizationId`). Every query is scoped by the authenticated principal. There is no "trust the frontend to send the right ID." |
-| 5 | **Idempotency everywhere it matters.** | Webhooks (Stripe), job processing, and file uploads are idempotent so retries never double-charge or double-process. |
-| 6 | **Fail closed on auth and billing, fail open on cosmetics.** | If we can't verify a subscription, deny the paid feature. If we can't load a usage graph, show the dashboard anyway. |
-| 7 | **Everything expensive is observable.** | Every AI job writes a row (provider, tokens/seconds, cost estimate, latency) so we can see margins per feature and per plan. |
+| #   | Principle                                                        | Consequence in this codebase                                                                                                                                                            |
+| --- | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Money-spending work is asynchronous.**                         | Anything that costs credits or takes >1s runs as a background **job**, never inline in an HTTP request. Video translation can take minutes; the API must never block on it.             |
+| 2   | **Credits are debited before work starts, refunded on failure.** | A job cannot begin until credits are reserved. This prevents users from spending money we can't bill and prevents us from doing work we can't charge for.                               |
+| 3   | **The backend is the only thing that talks to paid APIs.**       | No AI/Stripe/S3 secret ever reaches the browser. The frontend calls _our_ API; our API calls OpenAI/Anthropic/ElevenLabs/Stripe/S3.                                                     |
+| 4   | **Multi-tenant isolation is enforced at the data layer.**        | Every domain row carries a `userId` (and, for teams, an `organizationId`). Every query is scoped by the authenticated principal. There is no "trust the frontend to send the right ID." |
+| 5   | **Idempotency everywhere it matters.**                           | Webhooks (Stripe), job processing, and file uploads are idempotent so retries never double-charge or double-process.                                                                    |
+| 6   | **Fail closed on auth and billing, fail open on cosmetics.**     | If we can't verify a subscription, deny the paid feature. If we can't load a usage graph, show the dashboard anyway.                                                                    |
+| 7   | **Everything expensive is observable.**                          | Every AI job writes a row (provider, tokens/seconds, cost estimate, latency) so we can see margins per feature and per plan.                                                            |
 
 ---
 
@@ -107,7 +107,7 @@ flowchart TB
 
 ## 4. Why this stack (decisions, not just choices)
 
-The tech stack was specified in the brief. Here is *why* each piece earns its
+The tech stack was specified in the brief. Here is _why_ each piece earns its
 place and how the pieces are wired — this is the part that matters for building.
 
 ### 4.1 Frontend — Next.js (App Router) + React + TypeScript + Tailwind + shadcn/ui
@@ -117,7 +117,7 @@ place and how the pieces are wired — this is the part that matters for buildin
   browser-facing endpoints (auth callbacks, upload signing) without shipping
   secrets to the client.
 - **shadcn/ui** (Radix + Tailwind) is chosen over a heavier component kit
-  because we *own* the component source — critical for a "world-class,
+  because we _own_ the component source — critical for a "world-class,
   Linear-like" UI where we need to control every pixel, animation, and dark/light
   token. No fighting a design system we can't change.
 - **TypeScript end to end.** The API contract is shared as types so the frontend
@@ -327,17 +327,17 @@ for each boundary is **Phase 2**.
 
 ## 9. Plan & credit model (business logic the architecture must support)
 
-| Plan | Price | Monthly credits (illustrative) | Key gates |
-|------|-------|-------------------------------|-----------|
-| Free | $0 | Small starter grant | Watermark on video, limited languages/voices, low concurrency |
-| Pro | $20/mo | Generous individual grant | All languages, premium voices, no watermark |
-| Business | $49/mo | Large grant | Higher concurrency, priority queue, team seats (small) |
-| Agency | $99/mo | Very large grant | Highest concurrency, most seats, API access, white-label options |
+| Plan     | Price  | Monthly credits (illustrative) | Key gates                                                        |
+| -------- | ------ | ------------------------------ | ---------------------------------------------------------------- |
+| Free     | $0     | Small starter grant            | Watermark on video, limited languages/voices, low concurrency    |
+| Pro      | $20/mo | Generous individual grant      | All languages, premium voices, no watermark                      |
+| Business | $49/mo | Large grant                    | Higher concurrency, priority queue, team seats (small)           |
+| Agency   | $99/mo | Very large grant               | Highest concurrency, most seats, API access, white-label options |
 
 Exact credit numbers and per-feature costs are configuration (in
 `packages/shared`), **not** hard-coded in features — so pricing can be tuned
-without a code change. Every feature checks the *cost table* and the *plan
-entitlements*, both of which are data.
+without a code change. Every feature checks the _cost table_ and the _plan
+entitlements_, both of which are data.
 
 ---
 
@@ -357,17 +357,17 @@ phased delivery requirement.
 
 ## 11. Phase roadmap & approval gates
 
-| Phase | Deliverable | Status |
-|-------|-------------|--------|
-| 1 | System architecture (this document) | ✅ Complete |
-| 2 | Monorepo folder structure + tooling | ✅ Complete |
-| 3 | Database schema (Prisma) | ✅ Complete |
-| 4 | Authentication | ⏳ Next |
-| 5 | Dashboard | — |
-| 6 | AI services | — |
-| 7 | Payments | — |
-| 8 | Admin | — |
-| 9 | Deployment | — |
-| 10 | Testing | — |
+| Phase | Deliverable                         | Status      |
+| ----- | ----------------------------------- | ----------- |
+| 1     | System architecture (this document) | ✅ Complete |
+| 2     | Monorepo folder structure + tooling | ✅ Complete |
+| 3     | Database schema (Prisma)            | ✅ Complete |
+| 4     | Authentication                      | ✅ Complete |
+| 5     | Dashboard                           | ⏳ Next     |
+| 6     | AI services                         | —           |
+| 7     | Payments                            | —           |
+| 8     | Admin                               | —           |
+| 9     | Deployment                          | —           |
+| 10    | Testing                             | —           |
 
 **Gate:** work does not proceed to Phase 2 until this architecture is approved.
