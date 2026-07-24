@@ -15,6 +15,37 @@ is exactly what keeps it verifiable in CI. Real vendors drop in behind the same
 interfaces via the `getProviders()` factory in Phase 9 — feature code never
 changes.
 
+### Live provider: Anthropic Claude (text tools)
+
+The LLM is the **first real vendor wired in**. When `ANTHROPIC_API_KEY` is set,
+`getProviders().llm` is `AnthropicLLMProvider` (`packages/providers/src/anthropic.ts`)
+and every text tool — script, blog, social, titles, hashtags — runs on real
+**Claude (`claude-opus-4-8`)**. When the key is absent it stays on the mock, so
+CI and local dev keep running keyless. STT / TTS / image / storage remain mocks
+(and share the mock storage), so the media pipeline still works end-to-end
+alongside a real LLM.
+
+Adapter design decisions:
+
+- **Model pinned to the flagship** (`claude-opus-4-8`) — quality is the product;
+  the adapter doesn't silently downgrade to save cost.
+- **Streams and awaits `finalMessage()`** rather than one blocking call, so long
+  blog drafts at high `max_tokens` don't hit request timeouts.
+- **Sends no `temperature`** — Opus 4.8 rejects it (400).
+- **A `refusal` stop reason throws**, so the worker's `catch` **releases the
+  credit hold** — the user is never charged for a declined generation.
+
+Verify it in one command (real output with a key, mock without):
+
+```bash
+pnpm --filter @hub/providers build
+ANTHROPIC_API_KEY=sk-ant-... node scripts/try-llm.mjs "your topic"
+```
+
+The adapter's own logic (text-block concatenation, usage mapping, refusal →
+throw) is covered by `packages/providers/src/anthropic.test.ts` against the real
+`generateText` path with a stubbed SDK client — no network, deterministic in CI.
+
 ## The credit lifecycle, now in code
 
 The ledger primitives live in `@hub/db` so the **API and worker run the exact
