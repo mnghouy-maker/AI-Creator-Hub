@@ -365,8 +365,8 @@ phased delivery requirement.
 | 4     | Authentication                      | ✅ Complete |
 | 5     | Dashboard                           | ✅ Complete |
 | 6     | AI services                         | ✅ Complete |
-| 7     | Payments                            | ⏳ Next     |
-| 8     | Admin                               | —           |
+| 7     | Payments                            | ✅ Complete |
+| 8     | Admin                               | ⏳ Next     |
 | 9     | Deployment                          | —           |
 | 10    | Testing                             | —           |
 

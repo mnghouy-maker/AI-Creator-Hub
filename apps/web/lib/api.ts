@@ -98,6 +98,33 @@ export const projectsApi = {
   get: (id: string) => api.get<{ metadata?: { result?: string } }>(`/projects/${id}`),
 };
 
+export interface Subscription {
+  plan: 'free' | 'pro' | 'business' | 'agency';
+  status: string;
+  interval: string;
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: string | null;
+  monthlyCredits: number;
+  billingConfigured: boolean;
+}
+
+export interface Invoice {
+  id: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  pdfUrl: string | null;
+  createdAt: string;
+}
+
+export const billingApi = {
+  subscription: () => api.get<Subscription>('/billing/subscription'),
+  checkout: (plan: 'pro' | 'business' | 'agency', interval: 'monthly' | 'yearly') =>
+    api.post<{ url: string | null }>('/billing/checkout', { plan, interval }),
+  portal: () => api.post<{ url: string | null }>('/billing/portal'),
+  invoices: () => api.get<{ invoices: Invoice[] }>('/billing/invoices'),
+};
+
 export const authApi = {
   me: () => api.get<{ user: Me }>('/auth/me'),
   register: (body: { email: string; password: string; name?: string; referralCode?: string }) =>

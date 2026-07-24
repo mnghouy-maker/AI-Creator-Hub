@@ -18,8 +18,9 @@ social content — all in one premium, fast, subscription platform.
 > **Phases 1–6 complete** — architecture, monorepo, database, native NestJS
 > auth (email/OAuth/2FA/sessions), the full Next.js frontend, and the AI
 > services (credits ledger, BullMQ jobs, video-translation pipeline, and text
-> tools on adapter-based providers with mocks). The whole workspace passes
-> typecheck, lint, and build. **Phase 7 (payments) is next.**
+> tools on adapter-based providers with mocks), and payments (Stripe checkout,
+> portal, idempotent webhooks, invoices, referral rewards). The whole workspace
+> passes typecheck, lint, and build. **Phase 8 (admin) is next.**
 
 ## What it does
 
@@ -54,6 +55,7 @@ social content — all in one premium, fast, subscription platform.
 - 🔐 [**Authentication**](docs/AUTHENTICATION.md) — sessions, OAuth, 2FA, and the security model.
 - 🎨 [**Frontend & Dashboard**](docs/FRONTEND.md) — the Next.js app, design system, and UI architecture.
 - 🤖 [**AI Services**](docs/AI_SERVICES.md) — providers, the credit lifecycle, jobs, and the video pipeline.
+- 💳 [**Payments**](docs/PAYMENTS.md) — Stripe checkout, idempotent webhooks, invoices, and referrals.
 
 ## Repository layout
 

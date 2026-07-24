@@ -705,3 +705,16 @@ model SystemSetting {
   value     Json
   updatedAt DateTime @updatedAt
 }
+
+/// Processed payment webhook events, for idempotency (Architecture §5.3). We
+/// insert the provider's event id BEFORE acting on it; a duplicate delivery hits
+/// the unique constraint and is skipped, so a renewal can never double-grant
+/// credits no matter how many times Stripe retries.
+model WebhookEvent {
+  id          String   @id // the provider's event id (e.g. Stripe evt_...)
+  provider    String // "stripe" | "paypal"
+  type        String
+  processedAt DateTime @default(now())
+
+  @@index([provider, processedAt])
+}

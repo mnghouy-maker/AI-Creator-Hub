@@ -14,7 +14,9 @@ import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  // rawBody: keep the exact request bytes so the Stripe webhook can verify its
+  // signature (Phase 7) while normal routes still get parsed JSON.
+  const app = await NestFactory.create(AppModule, { bufferLogs: true, rawBody: true });
 
   app.use(helmet());
   // Parse the http-only session cookie so guards can read it (Architecture §4.6).

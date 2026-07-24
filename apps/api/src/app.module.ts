@@ -24,6 +24,7 @@ import { JobsModule } from './modules/jobs/jobs.module.js';
 import { AiModule } from './modules/ai/ai.module.js';
 import { VideoModule } from './modules/video/video.module.js';
 import { ProjectsModule } from './modules/projects/projects.module.js';
+import { BillingModule } from './modules/billing/billing.module.js';
 
 @Module({
   imports: [
@@ -42,8 +43,8 @@ import { ProjectsModule } from './modules/projects/projects.module.js';
     AiModule,
     VideoModule,
     ProjectsModule,
+    BillingModule,
     // --- Added in later phases ---
-    // BillingModule,       // Phase 7
     // AdminModule,         // Phase 8
     // NotificationsModule
   ],

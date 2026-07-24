@@ -28,6 +28,17 @@ const envSchema = z.object({
 
   EMAIL_FROM: z.string().default('hello@aicreatorhub.app'),
   SMTP_URL: z.string().optional(),
+
+  // Payments — optional so local dev boots without billing configured. Billing
+  // routes check at use-time and 503 if Stripe isn't set up.
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  STRIPE_PRICE_PRO_MONTHLY: z.string().optional(),
+  STRIPE_PRICE_PRO_YEARLY: z.string().optional(),
+  STRIPE_PRICE_BUSINESS_MONTHLY: z.string().optional(),
+  STRIPE_PRICE_BUSINESS_YEARLY: z.string().optional(),
+  STRIPE_PRICE_AGENCY_MONTHLY: z.string().optional(),
+  STRIPE_PRICE_AGENCY_YEARLY: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -48,4 +59,7 @@ export function hasGoogleOAuth(env: Env) {
 }
 export function hasGithubOAuth(env: Env) {
   return Boolean(env.GITHUB_CLIENT_ID && env.GITHUB_CLIENT_SECRET);
+}
+export function hasStripe(env: Pick<Env, 'STRIPE_SECRET_KEY'>) {
+  return Boolean(env.STRIPE_SECRET_KEY);
 }

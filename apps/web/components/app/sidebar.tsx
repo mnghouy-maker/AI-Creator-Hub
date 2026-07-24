@@ -50,7 +50,7 @@ const groups: { title: string; items: Item[] }[] = [
   {
     title: 'Account',
     items: [
-      { label: 'Billing', icon: CreditCard, soon: true },
+      { label: 'Billing', icon: CreditCard, href: '/billing' },
       { label: 'Settings', icon: Settings, soon: true },
     ],
   },
