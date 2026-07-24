@@ -38,3 +38,6 @@ Thumbs.db
 # Uploads / local artifacts
 uploads/
 tmp/
+
+# Static preview scaffolding (published as a Claude Artifact, not app source)
+scratchpad-preview/
