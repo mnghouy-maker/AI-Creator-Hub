@@ -3,7 +3,8 @@
  * routes (a full-page navigation, as OAuth requires) — the API handles the
  * provider handshake and redirects back to /dashboard with a session cookie set.
  */
-const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+// Same-origin relative by default (see lib/api.ts); split-origin dev sets it.
+const API = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 export function OAuthButtons() {
   return (

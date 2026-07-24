@@ -8,7 +8,11 @@
  *    (e.g. 401 → redirect to login, 402 → upsell).
  *  - No secrets here; the base URL is the only config, and it's public.
  */
-const BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+// Base URL for API calls. Defaults to '' → same-origin relative `/api/...`,
+// which is the correct (and safest) production setup: the browser talks only to
+// the web origin, so the http-only SameSite=Lax session cookie stays
+// first-party. In split-origin local dev this is set to http://localhost:4000.
+const BASE = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 export class ApiError extends Error {
   constructor(

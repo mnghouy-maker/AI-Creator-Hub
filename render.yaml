@@ -1,0 +1,115 @@
+# =============================================================================
+# Render Blueprint — one-click-ish preview deploy of AI Creator Hub.
+#
+# Provisions the whole stack on Render's free tier: managed Postgres + Key Value
+# (Redis), the NestJS API, the BullMQ worker, and the Next.js web app. HTTPS is
+# automatic on *.onrender.com, which the secure session cookie requires.
+#
+# The browser only ever talks to the WEB origin: the web app proxies /api/* to
+# the API server-side (apps/web/app/api/[...path]/route.ts), so the SameSite=Lax
+# session cookie stays first-party. That's why API_INTERNAL_URL below points the
+# web service at the API's URL.
+#
+# Providers run on deterministic MOCKS by default (no S3 / no vendor keys needed)
+# — sign up, spend credits, run jobs, see results end-to-end. Add ANTHROPIC_API_KEY
+# to the API + worker to make the text tools generate with real Claude.
+#
+# Deploy:  push this file, then in Render → "New +" → "Blueprint" → pick this repo.
+# After the first deploy, set APP_URL + API_INTERNAL_URL to the real web/api URLs
+# (see docs/PREVIEW_DEPLOY.md) and trigger a redeploy.
+# =============================================================================
+
+databases:
+  - name: hub-postgres
+    plan: free
+    databaseName: creatorhub
+    user: hub
+
+services:
+  # ---- Redis (BullMQ queues + session cache) --------------------------------
+  - type: keyvalue
+    name: hub-redis
+    plan: free
+    ipAllowList: [] # reachable only from other Render services in this project
+    maxmemoryPolicy: noeviction
+
+  # ---- API (NestJS) ---------------------------------------------------------
+  - type: web
+    name: hub-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./infra/docker/api.Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    # Apply the schema before each deploy (this project uses `db push`, not
+    # migration files). Idempotent, so it's safe to run on every deploy.
+    preDeployCommand: pnpm --filter @hub/db db:push
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: '4000'
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hub-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: hub-redis
+          type: keyvalue
+          property: connectionString
+      # Signs session JWTs + derives the TOTP encryption key. Auto-generated once.
+      - key: AUTH_SECRET
+        generateValue: true
+      # Public web origin — used for CORS + email links. Set to the real web URL
+      # after the first deploy (Render can't self-reference a URL at create time).
+      - key: APP_URL
+        sync: false
+      # Optional: real Claude for the text tools. Add in the dashboard to enable.
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+  # ---- Worker (BullMQ processors; includes ffmpeg) --------------------------
+  - type: worker
+    name: hub-worker
+    runtime: docker
+    plan: free
+    dockerfilePath: ./infra/docker/worker.Dockerfile
+    dockerContext: .
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hub-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: hub-redis
+          type: keyvalue
+          property: connectionString
+      - key: AUTH_SECRET
+        fromService:
+          name: hub-api
+          type: web
+          envVarKey: AUTH_SECRET
+      - key: ANTHROPIC_API_KEY
+        sync: false
+
+  # ---- Web (Next.js) --------------------------------------------------------
+  - type: web
+    name: hub-web
+    runtime: docker
+    plan: free
+    dockerfilePath: ./infra/docker/web.Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: '3000'
+      # Server-side proxy target (browser never sees this). Point at the API's
+      # URL. Set to https://hub-api.onrender.com (your API URL) after first deploy.
+      - key: API_INTERNAL_URL
+        sync: false
