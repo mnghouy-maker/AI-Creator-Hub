@@ -366,8 +366,8 @@ phased delivery requirement.
 | 5     | Dashboard                           | ✅ Complete |
 | 6     | AI services                         | ✅ Complete |
 | 7     | Payments                            | ✅ Complete |
-| 8     | Admin                               | ⏳ Next     |
-| 9     | Deployment                          | —           |
+| 8     | Admin                               | ✅ Complete |
+| 9     | Deployment                          | ⏳ Next     |
 | 10    | Testing                             | —           |
 
 **Gate:** work does not proceed to Phase 2 until this architecture is approved.

@@ -43,6 +43,8 @@ export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+  patch: <T>(path: string, body?: unknown) =>
+    request<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
   del: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 };
 
@@ -123,6 +125,56 @@ export const billingApi = {
     api.post<{ url: string | null }>('/billing/checkout', { plan, interval }),
   portal: () => api.post<{ url: string | null }>('/billing/portal'),
   invoices: () => api.get<{ invoices: Invoice[] }>('/billing/invoices'),
+};
+
+// ---- Admin ----------------------------------------------------------------
+
+export interface AdminMetrics {
+  totalUsers: number;
+  newUsersToday: number;
+  activePaidSubs: number;
+  planCounts: Record<string, number>;
+  mrrCents: number;
+  lifetimeRevenueCents: number;
+  jobs: Record<string, number>;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  name: string | null;
+  role: 'USER' | 'ADMIN' | 'SUPERADMIN';
+  createdAt: string;
+  emailVerified: string | null;
+}
+
+export interface FeatureFlag {
+  key: string;
+  enabled: boolean;
+  description: string | null;
+}
+
+export interface AdminJob {
+  id: string;
+  action: string;
+  status: string;
+  progress: number;
+  error: string | null;
+  createdAt: string;
+}
+
+export const adminApi = {
+  metrics: () => api.get<AdminMetrics>('/admin/metrics'),
+  users: (q?: string) =>
+    api.get<{ users: AdminUser[] }>(`/admin/users${q ? `?q=${encodeURIComponent(q)}` : ''}`),
+  setRole: (id: string, role: AdminUser['role']) =>
+    api.patch<{ id: string; role: string }>(`/admin/users/${id}/role`, { role }),
+  grantCredits: (id: string, amount: number, reason: string) =>
+    api.post<{ ok: boolean }>(`/admin/users/${id}/credits`, { amount, reason }),
+  jobs: () => api.get<{ jobs: AdminJob[] }>('/admin/jobs'),
+  flags: () => api.get<{ flags: FeatureFlag[] }>('/admin/flags'),
+  setFlag: (key: string, enabled: boolean) =>
+    api.patch<FeatureFlag>(`/admin/flags/${key}`, { enabled }),
 };
 
 export const authApi = {

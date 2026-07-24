@@ -5,6 +5,7 @@
  */
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -19,10 +20,12 @@ import {
   History,
   CreditCard,
   Settings,
+  ShieldCheck,
   Plus,
 } from 'lucide-react';
 import { Logo } from '@/components/logo';
 import { Button } from '@/components/ui/button';
+import { authApi } from '@/lib/api';
 import { cn } from '@/lib/utils';
 
 type Item = { label: string; icon: typeof Film; href?: string; soon?: boolean };
@@ -58,6 +61,26 @@ const groups: { title: string; items: Item[] }[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  // Show the Admin group only to admins/superadmins. The route is also
+  // server-enforced (403), so this is purely a UX affordance.
+  useEffect(() => {
+    authApi
+      .me()
+      .then((r) => setIsAdmin(r.user.role === 'ADMIN' || r.user.role === 'SUPERADMIN'))
+      .catch(() => {});
+  }, []);
+
+  const allGroups = isAdmin
+    ? [
+        ...groups,
+        {
+          title: 'Admin',
+          items: [{ label: 'Admin panel', icon: ShieldCheck, href: '/admin' }] as Item[],
+        },
+      ]
+    : groups;
 
   return (
     <aside className="sticky top-0 hidden h-screen w-60 shrink-0 overflow-y-auto border-r border-border bg-surface px-3.5 py-4 lg:block">
@@ -68,7 +91,7 @@ export function Sidebar() {
         <Plus className="h-4 w-4" /> New project
       </Button>
 
-      {groups.map((g) => (
+      {allGroups.map((g) => (
         <div key={g.title} className="mb-4">
           <div className="px-2 pb-2 font-mono text-[10px] uppercase tracking-[0.12em] text-faint">
             {g.title}

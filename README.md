@@ -15,12 +15,13 @@ social content — all in one premium, fast, subscription platform.
 
 > **Build status:** This project is being built in reviewable phases. See the
 > [phase roadmap](docs/ARCHITECTURE.md#11-phase-roadmap--approval-gates).
-> **Phases 1–6 complete** — architecture, monorepo, database, native NestJS
-> auth (email/OAuth/2FA/sessions), the full Next.js frontend, and the AI
-> services (credits ledger, BullMQ jobs, video-translation pipeline, and text
-> tools on adapter-based providers with mocks), and payments (Stripe checkout,
-> portal, idempotent webhooks, invoices, referral rewards). The whole workspace
-> passes typecheck, lint, and build. **Phase 8 (admin) is next.**
+> **Phases 1–8 complete** — architecture, monorepo, database, native NestJS
+> auth (email/OAuth/2FA/sessions), the full Next.js frontend, AI services
+> (credits ledger, BullMQ jobs, video-translation pipeline, text tools on
+> adapter-based providers with mocks), payments (Stripe checkout, portal,
+> idempotent webhooks, invoices, referrals), and a role-gated admin panel
+> (revenue, users, queue, feature flags). The whole workspace passes typecheck,
+> lint, and build. **Phase 9 (deployment) is next.**
 
 ## What it does
 
@@ -56,6 +57,7 @@ social content — all in one premium, fast, subscription platform.
 - 🎨 [**Frontend & Dashboard**](docs/FRONTEND.md) — the Next.js app, design system, and UI architecture.
 - 🤖 [**AI Services**](docs/AI_SERVICES.md) — providers, the credit lifecycle, jobs, and the video pipeline.
 - 💳 [**Payments**](docs/PAYMENTS.md) — Stripe checkout, idempotent webhooks, invoices, and referrals.
+- 🛠️ [**Admin Panel**](docs/ADMIN.md) — RBAC, revenue metrics, user management, and feature flags.
 
 ## Repository layout
 

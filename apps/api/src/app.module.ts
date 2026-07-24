@@ -25,6 +25,7 @@ import { AiModule } from './modules/ai/ai.module.js';
 import { VideoModule } from './modules/video/video.module.js';
 import { ProjectsModule } from './modules/projects/projects.module.js';
 import { BillingModule } from './modules/billing/billing.module.js';
+import { AdminModule } from './modules/admin/admin.module.js';
 
 @Module({
   imports: [
@@ -44,8 +45,8 @@ import { BillingModule } from './modules/billing/billing.module.js';
     VideoModule,
     ProjectsModule,
     BillingModule,
+    AdminModule,
     // --- Added in later phases ---
-    // AdminModule,         // Phase 8
     // NotificationsModule
   ],
   providers: [
