@@ -35,6 +35,9 @@ importers:
       '@hub/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@hub/providers':
+        specifier: workspace:*
+        version: link:../../packages/providers
       '@hub/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -187,6 +190,9 @@ importers:
       '@hub/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@hub/providers':
+        specifier: workspace:*
+        version: link:../../packages/providers
       '@hub/shared':
         specifier: workspace:*
         version: link:../../packages/shared
@@ -219,6 +225,16 @@ importers:
       tsx:
         specifier: ^4.19.1
         version: 4.23.1
+      typescript:
+        specifier: ^5.6.2
+        version: 5.9.3
+
+  packages/providers:
+    dependencies:
+      '@hub/shared':
+        specifier: workspace:*
+        version: link:../shared
+    devDependencies:
       typescript:
         specifier: ^5.6.2
         version: 5.9.3

@@ -1,38 +1,52 @@
 /**
- * Worker entrypoint.
+ * Worker entrypoint. One BullMQ Worker per queue, each routed to its processor.
+ * Concurrency is bounded per queue so a burst of video encodes can't starve
+ * cheap text jobs (Architecture §7 backpressure). Every job's data is just the
+ * DB jobId; the processor loads the rest and settles credits.
  *
- * Phase 2 scaffold: registers the BullMQ Workers for each queue and proves the
- * process boots and connects to Redis. The real processors (video pipeline,
- * TTS, text generation) — including the hold→debit/refund credit settlement
- * from Architecture §5.1 — are implemented in Phase 6.
+ * Providers are resolved once (mock by default) and injected into each
+ * processor, so swapping to real vendors later touches only the factory.
  */
-import { Worker } from 'bullmq';
+import { Worker, type Job } from 'bullmq';
 import { Redis } from 'ioredis';
-import { QUEUES } from './queues.js';
+import { QUEUES, type JobPayload } from '@hub/shared';
+import { getProviders } from '@hub/providers';
+import { redisUrl } from './queues.js';
+import { processAiText } from './processors/ai-text.js';
+import { processVideoTranslate } from './processors/video.js';
+import { processVoice } from './processors/voice.js';
+import { processImage } from './processors/image.js';
 
-const connection = new Redis(process.env.REDIS_URL ?? 'redis://localhost:6379', {
-  // Required by BullMQ for blocking commands.
-  maxRetriesPerRequest: null,
-});
+const connection = new Redis(redisUrl, { maxRetriesPerRequest: null });
+const providers = getProviders();
 
-// One Worker per queue. Concurrency is intentionally conservative here and will
-// be driven by plan entitlements + provider limits in Phase 6.
-const workers = Object.values(QUEUES).map(
-  (queueName) =>
-    new Worker(
-      queueName,
-      async (job) => {
-        // Placeholder processor — replaced per-queue in Phase 6.
-        console.log(`[worker:${queueName}] received job ${job.id} (${job.name})`);
-        return { ok: true };
+// Queue → processor + how many to run at once (video is heaviest → lowest).
+const routes: { queue: string; concurrency: number; run: (jobId: string) => Promise<void> }[] = [
+  { queue: QUEUES.aiText, concurrency: 5, run: (id) => processAiText(id, providers) },
+  { queue: QUEUES.video, concurrency: 2, run: (id) => processVideoTranslate(id, providers) },
+  { queue: QUEUES.voice, concurrency: 3, run: (id) => processVoice(id, providers) },
+  { queue: QUEUES.image, concurrency: 3, run: (id) => processImage(id, providers) },
+];
+
+const workers = routes.map(
+  (r) =>
+    new Worker<JobPayload>(
+      r.queue,
+      async (job: Job<JobPayload>) => {
+        await r.run(job.data.jobId);
       },
-      { connection, concurrency: 2 },
+      { connection, concurrency: r.concurrency },
     ),
 );
 
-console.log(`[worker] started, listening on queues: ${Object.values(QUEUES).join(', ')}`);
+for (const w of workers) {
+  w.on('failed', (job, err) => {
+    console.error(`[worker:${w.name}] job ${job?.id} failed:`, err.message);
+  });
+}
 
-// Graceful shutdown so in-flight jobs finish before the process exits.
+console.log(`[worker] started on queues: ${routes.map((r) => r.queue).join(', ')}`);
+
 async function shutdown() {
   await Promise.all(workers.map((w) => w.close()));
   await connection.quit();

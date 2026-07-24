@@ -15,10 +15,11 @@ social content — all in one premium, fast, subscription platform.
 
 > **Build status:** This project is being built in reviewable phases. See the
 > [phase roadmap](docs/ARCHITECTURE.md#11-phase-roadmap--approval-gates).
-> **Phases 1–5 complete** — architecture, monorepo, database schema, native
-> NestJS auth (email/OAuth/2FA/sessions), and the full Next.js frontend
-> (marketing, auth pages, dashboard, projects) with light/dark. The whole
-> workspace passes typecheck, lint, and build. **Phase 6 (AI services) is next.**
+> **Phases 1–6 complete** — architecture, monorepo, database, native NestJS
+> auth (email/OAuth/2FA/sessions), the full Next.js frontend, and the AI
+> services (credits ledger, BullMQ jobs, video-translation pipeline, and text
+> tools on adapter-based providers with mocks). The whole workspace passes
+> typecheck, lint, and build. **Phase 7 (payments) is next.**
 
 ## What it does
 
@@ -52,6 +53,7 @@ social content — all in one premium, fast, subscription platform.
 - 🗄️ [**Data model**](docs/DATA_MODEL.md) — the database schema explained.
 - 🔐 [**Authentication**](docs/AUTHENTICATION.md) — sessions, OAuth, 2FA, and the security model.
 - 🎨 [**Frontend & Dashboard**](docs/FRONTEND.md) — the Next.js app, design system, and UI architecture.
+- 🤖 [**AI Services**](docs/AI_SERVICES.md) — providers, the credit lifecycle, jobs, and the video pipeline.
 
 ## Repository layout
 

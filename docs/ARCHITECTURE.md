@@ -364,8 +364,8 @@ phased delivery requirement.
 | 3     | Database schema (Prisma)            | ✅ Complete |
 | 4     | Authentication                      | ✅ Complete |
 | 5     | Dashboard                           | ✅ Complete |
-| 6     | AI services                         | ⏳ Next     |
-| 7     | Payments                            | —           |
+| 6     | AI services                         | ✅ Complete |
+| 7     | Payments                            | ⏳ Next     |
 | 8     | Admin                               | —           |
 | 9     | Deployment                          | —           |
 | 10    | Testing                             | —           |

@@ -59,6 +59,45 @@ export interface Me {
   referralCode: string;
 }
 
+export interface Balances {
+  balance: number;
+  available: number;
+  reserved: number;
+}
+
+export interface JobStatus {
+  id: string;
+  status: 'QUEUED' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'CANCELED';
+  progress: number;
+  stage: string | null;
+  action: string;
+  creditsCharged: number | null;
+  error: string | null;
+  projectId: string | null;
+}
+
+export const creditsApi = {
+  balance: () => api.get<Balances>('/credits/balance'),
+  ledger: () => api.get<{ entries: unknown[] }>('/credits/ledger'),
+};
+
+export const jobsApi = {
+  get: (id: string) => api.get<JobStatus>(`/jobs/${id}`),
+  list: () => api.get<{ jobs: JobStatus[] }>('/jobs'),
+};
+
+export const aiApi = {
+  generate: (
+    tool: 'script' | 'blog' | 'social' | 'title' | 'hashtags',
+    input: { prompt: string; tone?: string; platform?: string; language?: string },
+  ) =>
+    api.post<{ jobId: string; projectId: string; estimatedCredits: number }>(`/ai/${tool}`, input),
+};
+
+export const projectsApi = {
+  get: (id: string) => api.get<{ metadata?: { result?: string } }>(`/projects/${id}`),
+};
+
 export const authApi = {
   me: () => api.get<{ user: Me }>('/auth/me'),
   register: (body: { email: string; password: string; name?: string; referralCode?: string }) =>

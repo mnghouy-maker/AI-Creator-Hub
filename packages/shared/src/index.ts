@@ -8,3 +8,4 @@ export * from './credits.js';
 export * from './languages.js';
 export * from './voices.js';
 export * from './types.js';
+export * from './queues.js';

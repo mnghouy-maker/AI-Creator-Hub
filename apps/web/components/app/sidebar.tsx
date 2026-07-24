@@ -34,7 +34,7 @@ const groups: { title: string; items: Item[] }[] = [
       { label: 'Dashboard', icon: LayoutGrid, href: '/dashboard' },
       { label: 'Video Translator', icon: Film, soon: true },
       { label: 'Voice Studio', icon: AudioWaveform, soon: true },
-      { label: 'Script Writer', icon: FileText, soon: true },
+      { label: 'Script Writer', icon: FileText, href: '/tools/script' },
       { label: 'Blog Writer', icon: Newspaper, soon: true },
       { label: 'Social Tools', icon: Hash, soon: true },
     ],

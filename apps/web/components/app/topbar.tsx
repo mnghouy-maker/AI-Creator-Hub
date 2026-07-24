@@ -9,7 +9,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, Zap, LogOut } from 'lucide-react';
-import { authApi, ApiError, type Me } from '@/lib/api';
+import { authApi, creditsApi, ApiError, type Me } from '@/lib/api';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 const SAMPLE_ME: Me = {
@@ -31,6 +31,7 @@ function initials(name: string | null, email: string) {
 export function Topbar({ credits = 1340 }: { credits?: number }) {
   const router = useRouter();
   const [me, setMe] = useState<Me>(SAMPLE_ME);
+  const [balance, setBalance] = useState<number>(credits);
 
   useEffect(() => {
     authApi
@@ -38,6 +39,12 @@ export function Topbar({ credits = 1340 }: { credits?: number }) {
       .then((r) => setMe(r.user))
       .catch(() => {
         /* preview mode: keep sample identity */
+      });
+    creditsApi
+      .balance()
+      .then((b) => setBalance(b.available))
+      .catch(() => {
+        /* preview mode: keep the sample balance */
       });
   }, []);
 
@@ -67,7 +74,7 @@ export function Topbar({ credits = 1340 }: { credits?: number }) {
         <span className="grid h-[22px] w-[22px] place-items-center rounded-md bg-gradient-to-br from-accent to-accent-2">
           <Zap className="h-3 w-3 text-white" />
         </span>
-        <span className="tabular">{credits.toLocaleString()}</span>
+        <span className="tabular">{balance.toLocaleString()}</span>
         <span className="hidden text-faint sm:inline">credits</span>
       </div>
 

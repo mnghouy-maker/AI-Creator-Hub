@@ -23,3 +23,6 @@ if (process.env.NODE_ENV !== 'production') {
 // Re-export Prisma's generated types so apps import everything DB-related from
 // one place: `import { prisma, Prisma } from '@hub/db'`.
 export * from '@prisma/client';
+
+// Credit ledger primitives shared by the API (reserve) and worker (settle).
+export * from './credits.js';

@@ -1,0 +1,23 @@
+{
+  "//": "External-service adapters behind clean interfaces (LLM, speech-to-text, text-to-speech, image, storage). Ships with deterministic MOCK implementations so the full pipeline, credits, and queues run end-to-end without API keys. Real vendors drop in behind the same interfaces by config (Phase 9), never touching feature code.",
+  "name": "@hub/providers",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@hub/shared": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2"
+  }
+}

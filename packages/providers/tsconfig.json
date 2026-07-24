@@ -1,0 +1,13 @@
+{
+  "//": "Consumed as source (via path aliases) by api/worker, like @hub/shared. It imports shared's source, so we don't constrain rootDir or emit here — typecheck only. Runtime compilation happens in the app that imports it.",
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "lib": ["ES2022"],
+    "baseUrl": ".",
+    "paths": {
+      "@hub/shared": ["../shared/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}
