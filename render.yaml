@@ -63,8 +63,10 @@ services:
       # Signs session JWTs + derives the TOTP encryption key. Auto-generated once.
       - key: AUTH_SECRET
         generateValue: true
-      # Public web origin — used for CORS + email links. Set to the real web URL
-      # after the first deploy (Render can't self-reference a URL at create time).
+      # Public web origin — only used for CORS + email links. NOT required: the
+      # browser talks to the API through the same-origin web proxy, so CORS never
+      # fires, and preview email links just log to these logs. Optionally set it
+      # to the hub-web URL later for correct email links.
       - key: APP_URL
         sync: false
       # Optional: real Claude for the text tools. Add in the dashboard to enable.
@@ -89,7 +91,11 @@ services:
         value: production
       - key: PORT
         value: '3000'
-      # Server-side proxy target (browser never sees this). Point at the API's
-      # URL. Set to https://hub-api.onrender.com (your API URL) after first deploy.
+      # Server-side proxy target (browser never sees this). Auto-wired from the
+      # API service's hostname — no manual paste. The proxy adds https:// to this
+      # bare host (apps/web/app/api/[...path]/route.ts).
       - key: API_INTERNAL_URL
-        sync: false
+        fromService:
+          name: hub-api
+          type: web
+          property: host

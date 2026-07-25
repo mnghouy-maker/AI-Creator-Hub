@@ -22,8 +22,12 @@ export const runtime = 'nodejs';
 
 // Server-side only (never NEXT_PUBLIC_*), so the API address stays out of the
 // browser bundle. API_INTERNAL_URL is the platform's internal/public API URL.
+// Render's Blueprint `fromService` supplies a bare hostname (no scheme), so we
+// default a scheme-less value to https — letting render.yaml auto-wire this from
+// the API service with nothing to paste by hand.
 function upstreamBase(): string {
-  return process.env.API_INTERNAL_URL ?? process.env.API_URL ?? 'http://localhost:4000';
+  const raw = process.env.API_INTERNAL_URL ?? process.env.API_URL ?? 'http://localhost:4000';
+  return /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
 }
 
 // Hop-by-hop and host-specific headers that must not be forwarded verbatim.
