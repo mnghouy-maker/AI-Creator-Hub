@@ -5,6 +5,9 @@
 # Stage 2 ships the built repo and runs the clean dist/main.js entrypoint.
 FROM node:22-alpine AS builder
 WORKDIR /repo
+# OpenSSL is required for Prisma to detect the platform and generate the correct
+# query engine (Alpine ships OpenSSL 3.x).
+RUN apk add --no-cache openssl
 RUN corepack enable
 COPY . .
 RUN pnpm install --frozen-lockfile
@@ -19,6 +22,8 @@ RUN pnpm turbo run build --filter=@hub/api... --filter=@hub/worker...
 FROM node:22-alpine AS runner
 WORKDIR /repo
 ENV NODE_ENV=production
+# openssl: Prisma's query engine links against libssl at runtime.
+RUN apk add --no-cache openssl
 RUN corepack enable
 COPY --from=builder /repo ./
 EXPOSE 4000

@@ -18,6 +18,10 @@
 
 generator client {
   provider = "prisma-client-js"
+  // Ship engines for both local dev (native) and the Alpine containers, which
+  // run OpenSSL 3.x. Without the explicit openssl-3.0 musl target, Prisma can
+  // fall back to the OpenSSL 1.1 `linux-musl` engine and fail to load libssl.so.1.1.
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
