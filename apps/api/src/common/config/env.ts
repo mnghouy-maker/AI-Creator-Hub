@@ -20,6 +20,10 @@ const envSchema = z.object({
   // Signs session JWTs and derives the encryption key for TOTP secrets.
   AUTH_SECRET: z.string().min(16, 'AUTH_SECRET must be at least 16 chars'),
 
+  // Comma-separated emails promoted to SUPERADMIN on boot — a keyless way to
+  // grant admin on a fresh deploy without opening a DB shell.
+  ADMIN_EMAILS: z.string().optional(),
+
   // OAuth — optional; providers are only registered when both id+secret exist.
   GOOGLE_CLIENT_ID: z.string().optional(),
   GOOGLE_CLIENT_SECRET: z.string().optional(),

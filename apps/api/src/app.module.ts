@@ -16,6 +16,7 @@ import { PrismaModule } from './common/prisma/prisma.module.js';
 import { MailModule } from './common/mail/mail.module.js';
 import { QueueModule } from './common/queue/queue.module.js';
 import { OrgModule } from './common/org/org.module.js';
+import { BootstrapModule } from './common/bootstrap/bootstrap.module.js';
 import { InsufficientCreditsFilter } from './common/filters/insufficient-credits.filter.js';
 import { HealthModule } from './health/health.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
@@ -37,6 +38,7 @@ import { AdminModule } from './modules/admin/admin.module.js';
     MailModule,
     QueueModule,
     OrgModule,
+    BootstrapModule,
     HealthModule,
     AuthModule,
     CreditsModule,
