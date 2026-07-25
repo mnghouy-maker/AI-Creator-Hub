@@ -9,8 +9,12 @@ RUN corepack enable
 COPY . .
 RUN pnpm install --frozen-lockfile
 # Generate the Prisma client, then build the API and everything it depends on.
+# The worker is built too so a single container can run BOTH the API and the
+# BullMQ worker where a separate worker service isn't available (e.g. Render's
+# free tier). The default CMD still runs only the API; the combined start is
+# opt-in via the start script (see infra/scripts/start-api.sh).
 RUN pnpm --filter @hub/db generate
-RUN pnpm turbo run build --filter=@hub/api...
+RUN pnpm turbo run build --filter=@hub/api... --filter=@hub/worker...
 
 FROM node:22-alpine AS runner
 WORKDIR /repo

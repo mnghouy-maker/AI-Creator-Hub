@@ -41,10 +41,11 @@ services:
     dockerfilePath: ./infra/docker/api.Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
-    # Apply the schema, then start the API. Done in the start command (not
-    # `preDeployCommand`, which is a paid-tier feature) so it also works on free.
-    # `db push` is idempotent, so re-running it on every cold start is a no-op.
-    dockerCommand: sh -c "pnpm --filter @hub/db db:push && node apps/api/dist/main.js"
+    # Start script applies the schema (with retries, non-blocking) and runs BOTH
+    # the API and the BullMQ worker in this one container — Render's free tier has
+    # no separate background-worker service type, so we co-locate them here. The
+    # API holds the port so the deploy health check passes.
+    dockerCommand: sh infra/scripts/start-api.sh
     envVars:
       - key: NODE_ENV
         value: production
@@ -70,32 +71,10 @@ services:
       - key: ANTHROPIC_API_KEY
         sync: false
 
-  # ---- Worker (BullMQ processors; includes ffmpeg) --------------------------
-  - type: worker
-    name: hub-worker
-    runtime: docker
-    plan: free
-    dockerfilePath: ./infra/docker/worker.Dockerfile
-    dockerContext: .
-    envVars:
-      - key: NODE_ENV
-        value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: hub-postgres
-          property: connectionString
-      - key: REDIS_URL
-        fromService:
-          name: hub-redis
-          type: keyvalue
-          property: connectionString
-      - key: AUTH_SECRET
-        fromService:
-          name: hub-api
-          type: web
-          envVarKey: AUTH_SECRET
-      - key: ANTHROPIC_API_KEY
-        sync: false
+  # NOTE: The BullMQ worker is NOT a separate service — Render's free tier has no
+  # background-worker type. It runs inside hub-api (see infra/scripts/start-api.sh).
+  # To scale it out later, add a `type: worker` service on a paid plan using
+  # infra/docker/worker.Dockerfile and drop the worker launch from the start script.
 
   # ---- Web (Next.js) --------------------------------------------------------
   - type: web
